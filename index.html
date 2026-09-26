@@ -24,8 +24,8 @@
             : null;
 
         function App() {
-          const [activeTab, setActiveTab] = useState('aktiviti') // Tab utama
-          const [subAktivitiTab, setSubAktivitiTab] = useState('Mingguan') // Sub-tab dalam aktiviti: Mingguan, Bulanan, Tahunan
+          const [activeTab, setActiveTab] = useState('aktiviti')
+          const [subAktivitiTab, setSubAktivitiTab] = useState('Mingguan')
           
           const [dataSurau, setDataSurau] = useState([
             { id: 1, tarikh: 'Setiap Malam Jumaat', kategori: 'Mingguan', perkara: 'Majlis Bacaan Yassin & Tahlil', status: 'Aktif' },
@@ -195,16 +195,17 @@
             }
           }
 
-          // Tapis data mengikut sub-tab aktiviti yang dipilih
-          const filteredData = dataSurau.filter((item) => {
-            const matchSearch = 
-              item.perkara?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              item.tarikh?.toLowerCase().includes(searchTerm.toLowerCase())
-            
-            const matchKategori = item.kategori === subAktivitiTab;
-
-            return matchSearch && matchKategori
-          })
+          // Tapis dan susun data mengikut sub-tab serta susunan tarikh secara menaik (ascending)
+          const filteredData = dataSurau
+            .filter((item) => {
+              const matchSearch = 
+                item.perkara?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.tarikh?.toLowerCase().includes(searchTerm.toLowerCase())
+              
+              const matchKategori = item.kategori === subAktivitiTab;
+              return matchSearch && matchKategori
+            })
+            .sort((a, b) => (a.tarikh > b.tarikh ? 1 : -1));
 
           return (
             <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', paddingBottom: '40px' }}>
@@ -271,7 +272,7 @@
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari / Tarikh:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Setiap Malam Jumaat"
+                          placeholder="cth: Setiap Malam Jumaat atau 12/2/2026"
                           value={formBaru.tarikh} 
                           onChange={(e) => setFormBaru({ ...formBaru, tarikh: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -329,7 +330,7 @@
 
                 {activeTab === 'aktiviti' && (
                   <div>
-                    {/* 3 BAHAGIAN SUB-TAB DI DALAM PROGRAM */}
+                    {/* 3 BAHAGIAN SUB-TAB */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
                       <button 
                         onClick={() => setSubAktivitiTab('Mingguan')} 
@@ -364,7 +365,7 @@
                     <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                       <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 style={{ margin: 0, fontSize: '18px' }}>
-                          📋 Senarai Program {subAktivitiTab}
+                          📋 Senarai Program {subAktivitiTab} (Disusun Mengikut Tarikh/Hari)
                         </h2>
                       </div>
                       <div style={{ overflowX: 'auto' }}>
@@ -375,7 +376,7 @@
                               <th style={{ padding: '15px' }}>Kategori</th>
                               <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
                               <th style={{ padding: '15px' }}>Status</th>
-                              {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
+                              {isAdminMode && isAdminAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
                             </tr>
                           </thead>
                           <tbody>
