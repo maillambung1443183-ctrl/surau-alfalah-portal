@@ -34,6 +34,13 @@
             { id: 4, tarikh: '12/2/2026', kategori: 'Tahunan', perkara: 'Program Tahlil Perdana & Ceramah Israk Mikraj', status: 'Aktif' },
             { id: 5, tarikh: 'Bulan Ramadhan', kategori: 'Tahunan', perkara: 'Program Ihya Ramadhan, Jamuan Bubur Lambuk & Berbuka Puasa', status: 'Aktif' }
           ])
+
+          // Data Perancangan Pembangunan Surau
+          const [dataPembangunan, setDataPembangunan] = useState([
+            { id: 1, projek: 'Naik Taraf Sistem Siar Raya (PA System)', kos: 'RM 5,000', status: 'Dalam Perancangan', peratus: '20%' },
+            { id: 2, projek: 'Pemasangan Penghawa Dingin Utama Dewan Solat', kos: 'RM 12,000', status: 'Sedang Berjalan', peratus: '60%' },
+            { id: 3, projek: 'Mengecat Semula Bangunan Surau & Pagar', kos: 'RM 8,000', status: 'Selesai', peratus: '100%' }
+          ])
           
           const [loading, setLoading] = useState(false)
           const [searchTerm, setSearchTerm] = useState('')
@@ -195,7 +202,6 @@
             }
           }
 
-          // Tapis dan susun data mengikut sub-tab serta susunan tarikh secara menaik (ascending)
           const filteredData = dataSurau
             .filter((item) => {
               const matchSearch = 
@@ -230,13 +236,14 @@
                 <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
               </header>
 
-              {/* NAV UTAMA */}
+              {/* NAV UTAMA - DITAMBAH TAB PEMBANGUNAN */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
-                <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>📋 Program / Aktiviti</button>
-                <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⏳ Waktu Solat</button>
-                <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>👥 Carta AJK</button>
-                <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⚱️ Khairat</button>
-                <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>💰 Sumbangan</button>
+                <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📋 Program</button>
+                <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⏳ Waktu Solat</button>
+                <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>👥 Carta AJK</button>
+                <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⚱️ Khairat</button>
+                <button onClick={() => setActiveTab('pembangunan')} style={{ backgroundColor: activeTab === 'pembangunan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>🏗️ Pembangunan</button>
+                <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>💰 Sumbangan</button>
               </nav>
 
               {/* MAIN */}
@@ -258,7 +265,7 @@
                   </div>
                 )}
 
-                {isAdminMode && isAuthorized && (
+                {isAdminMode && isAuthorized && activeTab === 'aktiviti' && (
                   <div style={{ backgroundColor: editId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                       <h3 style={{ margin: 0, color: editId ? '#383d41' : '#155724', fontSize: '18px' }}>
@@ -272,7 +279,7 @@
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari / Tarikh:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Setiap Malam Jumaat atau 12/2/2026"
+                          placeholder="cth: Setiap Malam Jumaat"
                           value={formBaru.tarikh} 
                           onChange={(e) => setFormBaru({ ...formBaru, tarikh: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -330,7 +337,6 @@
 
                 {activeTab === 'aktiviti' && (
                   <div>
-                    {/* 3 BAHAGIAN SUB-TAB */}
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
                       <button 
                         onClick={() => setSubAktivitiTab('Mingguan')} 
@@ -365,7 +371,7 @@
                     <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                       <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 style={{ margin: 0, fontSize: '18px' }}>
-                          📋 Senarai Program {subAktivitiTab} (Disusun Mengikut Tarikh/Hari)
+                          📋 Senarai Program {subAktivitiTab}
                         </h2>
                       </div>
                       <div style={{ overflowX: 'auto' }}>
@@ -376,7 +382,7 @@
                               <th style={{ padding: '15px' }}>Kategori</th>
                               <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
                               <th style={{ padding: '15px' }}>Status</th>
-                              {isAdminMode && isAdminAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
+                              {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -531,6 +537,40 @@
                         </div>
                       </div>
 
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'pembangunan' && (
+                  <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <h2 style={{ margin: '0 0 10px 0', fontSize: '20px', color: '#1b4d3e', textAlign: 'center' }}>Perancangan Pembangunan & Naik Taraf Surau</h2>
+                    <p style={{ margin: '0 0 25px 0', fontSize: '13px', color: '#6c757d', textAlign: 'center' }}>Surau Al Falah Taman Seri Chinchin, Jasin, Melaka</p>
+                    
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
+                            <th style={{ padding: '15px' }}>Projek / Perkara</th>
+                            <th style={{ padding: '15px' }}>Anggaran Kos</th>
+                            <th style={{ padding: '15px' }}>Status Pelaksanaan</th>
+                            <th style={{ padding: '15px' }}>Kemajuan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dataPembangunan.map((item) => (
+                            <tr key={item.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
+                              <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600' }}>{item.projek}</td>
+                              <td style={{ padding: '15px', fontSize: '14px', fontWeight: '500' }}>{item.kos}</td>
+                              <td style={{ padding: '15px', fontSize: '14px' }}>
+                                <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: item.status === 'Selesai' ? '#d4edda' : item.status === 'Sedang Berjalan' ? '#cce5ff' : '#fff3cd', color: item.status === 'Selesai' ? '#155724' : item.status === 'Sedang Berjalan' ? '#004085' : '#856404' }}>
+                                  {item.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '15px', fontSize: '14px', fontWeight: '600', color: '#2e7d32' }}>{item.peratus}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
