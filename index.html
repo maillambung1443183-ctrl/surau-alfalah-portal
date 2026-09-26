@@ -35,7 +35,6 @@
             { id: 5, tarikh: 'Bulan Ramadhan', kategori: 'Tahunan', perkara: 'Program Ihya Ramadhan, Jamuan Bubur Lambuk & Berbuka Puasa', status: 'Aktif' }
           ])
 
-          // Data Perancangan Pembangunan Surau
           const [dataPembangunan, setDataPembangunan] = useState([
             { id: 1, projek: 'Naik Taraf Sistem Siar Raya (PA System)', kos: 'RM 5,000', status: 'Dalam Perancangan', peratus: '20%' },
             { id: 2, projek: 'Pemasangan Penghawa Dingin Utama Dewan Solat', kos: 'RM 12,000', status: 'Sedang Berjalan', peratus: '60%' },
@@ -56,6 +55,14 @@
             kategori: 'Mingguan',
             perkara: '',
             status: 'Aktif'
+          })
+
+          // State borang pembangunan admin
+          const [formPembangunan, setFormPembangunan] = useState({
+            projek: '',
+            kos: '',
+            status: 'Dalam Perancangan',
+            peratus: '0%'
           })
 
           const [waktuSolatInfo, setWaktuSolatInfo] = useState({
@@ -167,21 +174,41 @@
           async function handleSimpanAktiviti(e) {
             e.preventDefault()
             if (!formBaru.tarikh || !formBaru.perkara) {
-              alert('Sila lengkapkan ruangan Tarikh/Jadual dan Perkara!')
+              alert('Sila lengkapkan ruangan Tarikh dan Perkara!')
               return
             }
 
             if (editId) {
               setDataSurau(dataSurau.map(item => item.id === editId ? { ...item, ...formBaru } : item))
               setEditId(null)
-              alert('Rekod berjaya dikemaskini!')
+              alert('Program berjaya dikemaskini!')
             } else {
               const newItem = { id: Date.now(), ...formBaru }
               setDataSurau([newItem, ...dataSurau])
-              alert('Aktiviti baru berjaya ditambah!')
+              alert('Program baru berjaya ditambah!')
             }
 
             setFormBaru({ tarikh: '', kategori: 'Mingguan', perkara: '', status: 'Aktif' })
+          }
+
+          function handleSimpanPembangunan(e) {
+            e.preventDefault()
+            if (!formPembangunan.projek || !formPembangunan.kos) {
+              alert('Sila lengkapkan nama projek dan anggaran kos!')
+              return
+            }
+
+            const newProjek = { id: Date.now(), ...formPembangunan }
+            setDataPembangunan([newProjek, ...dataPembangunan])
+            alert('Projek pembangunan baru berjaya ditambah!')
+            setFormPembangunan({ projek: '', kos: '', status: 'Dalam Perancangan', peratus: '0%' })
+          }
+
+          function padamPembangunan(id) {
+            if (window.confirm('Adakah anda pasti mahu memadam projek pembangunan ini?')) {
+              setDataPembangunan(dataPembangunan.filter(item => item.id !== id))
+              alert('Projek telah dipadam.')
+            }
           }
 
           function mulaEdit(item) {
@@ -196,7 +223,7 @@
           }
 
           function padamAktiviti(id) {
-            if (window.confirm('Adakah anda pasti mahu memadam rekod aktiviti ini?')) {
+            if (window.confirm('Adakah anda pasti mahu memadam rekod program ini?')) {
               setDataSurau(dataSurau.filter(item => item.id !== id))
               alert('Rekod telah dipadam.')
             }
@@ -236,7 +263,7 @@
                 <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
               </header>
 
-              {/* NAV UTAMA - DITAMBAH TAB PEMBANGUNAN */}
+              {/* NAV UTAMA */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                 <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📋 Program</button>
                 <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⏳ Waktu Solat</button>
@@ -265,6 +292,7 @@
                   </div>
                 )}
 
+                {/* BORANG ADMIN UNTUK TAB AKTIVITI */}
                 {isAdminMode && isAuthorized && activeTab === 'aktiviti' && (
                   <div style={{ backgroundColor: editId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -329,6 +357,70 @@
                         )}
                         <button type="submit" style={{ backgroundColor: editId ? '#ffc107' : '#28a745', color: editId ? '#333' : 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
                           💾 Simpan Rekod
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN */}
+                {isAdminMode && isAuthorized && activeTab === 'pembangunan' && (
+                  <div style={{ backgroundColor: '#d4edda', border: '1px solid #c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <h3 style={{ margin: 0, color: '#155724', fontSize: '18px' }}>🛠️ Tambah Projek Pembangunan Baru</h3>
+                      <button onClick={() => setIsAuthorized(false)} style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>Log Keluar Admin</button>
+                    </div>
+
+                    <form onSubmit={handleSimpanPembangunan} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Projek / Perkara:</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: Naik taraf tandas..."
+                          value={formPembangunan.projek} 
+                          onChange={(e) => setFormPembangunan({ ...formPembangunan, projek: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Anggaran Kos:</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: RM 5,000"
+                          value={formPembangunan.kos} 
+                          onChange={(e) => setFormPembangunan({ ...formPembangunan, kos: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Status Pelaksanaan:</label>
+                        <select 
+                          value={formPembangunan.status} 
+                          onChange={(e) => setFormPembangunan({ ...formPembangunan, status: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        >
+                          <option value="Dalam Perancangan">Dalam Perancangan</option>
+                          <option value="Sedang Berjalan">Sedang Berjalan</option>
+                          <option value="Selesai">Selesai</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kemajuan (%):</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: 50%"
+                          value={formPembangunan.peratus} 
+                          onChange={(e) => setFormPembangunan({ ...formPembangunan, peratus: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
+                        <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                          💾 Simpan Projek
                         </button>
                       </div>
                     </form>
@@ -554,21 +646,33 @@
                             <th style={{ padding: '15px' }}>Anggaran Kos</th>
                             <th style={{ padding: '15px' }}>Status Pelaksanaan</th>
                             <th style={{ padding: '15px' }}>Kemajuan</th>
+                            {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
                           </tr>
                         </thead>
                         <tbody>
-                          {dataPembangunan.map((item) => (
-                            <tr key={item.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
-                              <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600' }}>{item.projek}</td>
-                              <td style={{ padding: '15px', fontSize: '14px', fontWeight: '500' }}>{item.kos}</td>
-                              <td style={{ padding: '15px', fontSize: '14px' }}>
-                                <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: item.status === 'Selesai' ? '#d4edda' : item.status === 'Sedang Berjalan' ? '#cce5ff' : '#fff3cd', color: item.status === 'Selesai' ? '#155724' : item.status === 'Sedang Berjalan' ? '#004085' : '#856404' }}>
-                                  {item.status}
-                                </span>
-                              </td>
-                              <td style={{ padding: '15px', fontSize: '14px', fontWeight: '600', color: '#2e7d32' }}>{item.peratus}</td>
+                          {dataPembangunan.length > 0 ? (
+                            dataPembangunan.map((item) => (
+                              <tr key={item.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
+                                <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600' }}>{item.projek}</td>
+                                <td style={{ padding: '15px', fontSize: '14px', fontWeight: '500' }}>{item.kos}</td>
+                                <td style={{ padding: '15px', fontSize: '14px' }}>
+                                  <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: item.status === 'Selesai' ? '#d4edda' : item.status === 'Sedang Berjalan' ? '#cce5ff' : '#fff3cd', color: item.status === 'Selesai' ? '#155724' : item.status === 'Sedang Berjalan' ? '#004085' : '#856404' }}>
+                                    {item.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '15px', fontSize: '14px', fontWeight: '600', color: '#2e7d32' }}>{item.peratus}</td>
+                                {isAdminMode && isAuthorized && (
+                                  <td style={{ padding: '15px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                    <button onClick={() => padamPembangunan(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Padam</button>
+                                  </td>
+                                )}
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod projek pembangunan.</td>
                             </tr>
-                          ))}
+                          )}
                         </tbody>
                       </table>
                     </div>
