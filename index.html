@@ -17,15 +17,20 @@
     <script type="text/babel">
         const { useEffect, useState } = React;
         
-        // Supabase Client Setup (Sila pastikan URL dan Anon Key Supabase Encik di sini jika perlu)
-        const supabaseUrl = 'YOUR_SUPABASE_URL';
-        const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
-        const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseAnonKey) : null;
+        // Tetapan selamat (dikosongkan untuk elak ralat blank screen)
+        const supabaseUrl = '';
+        const supabaseAnonKey = '';
+        const supabase = (supabaseUrl && supabaseAnonKey && window.supabase) 
+            ? window.supabase.createClient(supabaseUrl, supabaseAnonKey) 
+            : null;
 
         function App() {
           const [activeTab, setActiveTab] = useState('aktiviti')
-          const [dataSurau, setDataSurau] = useState([])
-          const [loading, setLoading] = useState(true)
+          const [dataSurau, setDataSurau] = useState([
+            { id: 1, tarikh: 'Setiap Malam Jumaat', kategori: 'Kuliah Agama', perkara: 'Majlis Bacaan Yassin & Tahlil', status: 'Aktif' },
+            { id: 2, tarikh: 'Setiap Sabtu', kategori: 'Program Mingguan', perkara: 'Kelas Al-Quran Kariah', status: 'Aktif' }
+          ])
+          const [loading, setLoading] = useState(false)
           const [searchTerm, setSearchTerm] = useState('')
           const [selectedKategori, setSelectedKategori] = useState('Semua')
           
@@ -45,9 +50,7 @@
 
           const [waktuSolatInfo, setWaktuSolatInfo] = useState({
             tarikhSemasa: '',
-            imsak: '05:38',
             subuh: '05:48',
-            syuruk: '07:01',
             zohor: '13:06',
             asar: '16:12',
             maghrib: '19:08',
@@ -106,8 +109,10 @@
           ]
 
           useEffect(() => {
-            fetchSurauData()
             paparTarikhSemasa()
+            if (supabase) {
+              fetchSurauData()
+            }
           }, [])
 
           function paparTarikhSemasa() {
@@ -124,20 +129,12 @@
           }
 
           async function fetchSurauData() {
-            if (!supabase) {
-              setLoading(false);
-              return;
-            }
+            if (!supabase) return;
             try {
               setLoading(true)
-              const { data, error } = await supabase
-                .from('surau_management')
-                .select('*')
-
-              if (error) {
-                console.error('Ralat mengambil data aktiviti:', error.message)
-              } else {
-                setDataSurau(data || [])
+              const { data, error } = await supabase.from('surau_management').select('*')
+              if (!error && data && data.length > 0) {
+                setDataSurau(data)
               }
             } catch (error) {
               console.error('Ralat sistem:', error)
@@ -164,44 +161,17 @@
               return
             }
 
-            if (!supabase) {
-              alert('Supabase belum disambungkan!');
-              return;
+            if (editId) {
+              setDataSurau(dataSurau.map(item => item.id === editId ? { ...item, ...formBaru } : item))
+              setEditId(null)
+              alert('Rekod berjaya dikemaskini!')
+            } else {
+              const newItem = { id: Date.now(), ...formBaru }
+              setDataSurau([newItem, ...dataSurau])
+              alert('Aktiviti baru berjaya ditambah!')
             }
 
-            try {
-              setSubmitting(true)
-              if (editId) {
-                const { error } = await supabase
-                  .from('surau_management')
-                  .update(formBaru)
-                  .eq('id', editId)
-
-                if (error) {
-                  alert('Ralat kemaskini: ' + error.message)
-                } else {
-                  alert('Rekod aktiviti berjaya dikemaskini!')
-                  setEditId(null)
-                }
-              } else {
-                const { error } = await supabase
-                  .from('surau_management')
-                  .insert([formBaru])
-
-                if (error) {
-                  alert('Ralat menyimpan: ' + error.message)
-                } else {
-                  alert('Aktiviti baru berjaya ditambah!')
-                }
-              }
-
-              setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' })
-              fetchSurauData()
-            } catch (err) {
-              console.error('Ralat:', err)
-            } finally {
-              setSubmitting(false)
-            }
+            setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' })
           }
 
           function mulaEdit(item) {
@@ -215,20 +185,10 @@
             window.scrollTo({ top: 0, behavior: 'smooth' })
           }
 
-          async function padamAktiviti(id) {
-            if (!supabase) return;
+          function padamAktiviti(id) {
             if (window.confirm('Adakah anda pasti mahu memadam rekod aktiviti ini?')) {
-              const { error } = await supabase
-                .from('surau_management')
-                .delete()
-                .eq('id', id)
-
-              if (error) {
-                alert('Ralat memadam: ' + error.message)
-              } else {
-                alert('Rekod telah dipadam.')
-                fetchSurauData()
-              }
+              setDataSurau(dataSurau.filter(item => item.id !== id))
+              alert('Rekod telah dipadam.')
             }
           }
 
@@ -307,7 +267,7 @@
 
                     <form onSubmit={handleSimpanAktiviti} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari (cth: Setiap Isnin):</label>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari:</label>
                         <input 
                           type="text" 
                           placeholder="cth: Setiap malam Jumaat"
@@ -321,7 +281,7 @@
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kategori:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Program Bacaan Yassin"
+                          placeholder="cth: Kuliah Agama"
                           value={formBaru.kategori} 
                           onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -332,7 +292,7 @@
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Perkara / Keterangan:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Bacaan yassin dan tahlil"
+                          placeholder="cth: Bacaan Yassin"
                           value={formBaru.perkara} 
                           onChange={(e) => setFormBaru({ ...formBaru, perkara: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -356,8 +316,8 @@
                         {editId && (
                           <button type="button" onClick={() => { setEditId(null); setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' }) }} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', marginRight: '10px', cursor: 'pointer' }}>Batal</button>
                         )}
-                        <button type="submit" disabled={submitting} style={{ backgroundColor: editId ? '#ffc107' : '#28a745', color: editId ? '#333' : 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          {submitting ? 'Menyimpan...' : '💾 Simpan ke Supabase'}
+                        <button type="submit" style={{ backgroundColor: editId ? '#ffc107' : '#28a745', color: editId ? '#333' : 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                          💾 Simpan Rekod
                         </button>
                       </div>
                     </form>
@@ -388,55 +348,50 @@
                       </div>
                     </div>
 
-                    {loading ? (
-                      <div style={{ backgroundColor: 'white', padding: '40px', textAlign: 'center', color: '#6c757d', borderRadius: '8px' }}>Sedang memuat data...</div>
-                    ) : (
-                      <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-                        <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h2 style={{ margin: 0, fontSize: '18px' }}>📋 Senarai Aktiviti & Program Surau</h2>
-                          <button onClick={fetchSurauData} style={{ backgroundColor: '#ffc107', color: '#333', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Muat Semula</button>
-                        </div>
-                        <div style={{ overflowX: 'auto' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                            <thead>
-                              <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
-                                <th style={{ padding: '15px' }}>Jadual / Hari</th>
-                                <th style={{ padding: '15px' }}>Kategori</th>
-                                <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
-                                <th style={{ padding: '15px' }}>Status</th>
-                                {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredData.length > 0 ? (
-                                filteredData.map((item, index) => (
-                                  <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f3f5' }}>
-                                    <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600', whiteSpace: 'nowrap' }}>{item.tarikh}</td>
-                                    <td style={{ padding: '15px', fontSize: '14px' }}>
-                                      <span style={{ backgroundColor: '#e9ecef', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>{item.kategori}</span>
-                                    </td>
-                                    <td style={{ padding: '15px', fontSize: '14px', color: '#212529', fontWeight: '500' }}>{item.perkara}</td>
-                                    <td style={{ padding: '15px', fontSize: '14px' }}>
-                                      <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#d4edda', color: '#155724' }}>{item.status || 'Aktif'}</span>
-                                    </td>
-                                    {isAdminMode && isAuthorized && (
-                                      <td style={{ padding: '15px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                                        <button onClick={() => mulaEdit(item)} style={{ backgroundColor: '#ffc107', color: '#333', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', marginRight: '5px' }}>Edit</button>
-                                        <button onClick={() => padamAktiviti(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Padam</button>
-                                      </td>
-                                    )}
-                                  </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod aktiviti ditemui.</td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
+                    <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                      <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2 style={{ margin: 0, fontSize: '18px' }}>📋 Senarai Aktiviti & Program Surau</h2>
                       </div>
-                    )}
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                          <thead>
+                            <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
+                              <th style={{ padding: '15px' }}>Jadual / Hari</th>
+                              <th style={{ padding: '15px' }}>Kategori</th>
+                              <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
+                              <th style={{ padding: '15px' }}>Status</th>
+                              {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredData.length > 0 ? (
+                              filteredData.map((item, index) => (
+                                <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f3f5' }}>
+                                  <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600', whiteSpace: 'nowrap' }}>{item.tarikh}</td>
+                                  <td style={{ padding: '15px', fontSize: '14px' }}>
+                                    <span style={{ backgroundColor: '#e9ecef', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>{item.kategori}</span>
+                                  </td>
+                                  <td style={{ padding: '15px', fontSize: '14px', color: '#212529', fontWeight: '500' }}>{item.perkara}</td>
+                                  <td style={{ padding: '15px', fontSize: '14px' }}>
+                                    <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#d4edda', color: '#155724' }}>{item.status || 'Aktif'}</span>
+                                  </td>
+                                  {isAdminMode && isAuthorized && (
+                                    <td style={{ padding: '15px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                      <button onClick={() => mulaEdit(item)} style={{ backgroundColor: '#ffc107', color: '#333', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', marginRight: '5px' }}>Edit</button>
+                                      <button onClick={() => padamAktiviti(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Padam</button>
+                                    </td>
+                                  )}
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod aktiviti ditemui.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 )}
 
