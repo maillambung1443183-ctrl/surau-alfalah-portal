@@ -17,7 +17,6 @@
     <script type="text/babel">
         const { useEffect, useState } = React;
         
-        // Tetapan selamat (dikosongkan untuk elak ralat blank screen)
         const supabaseUrl = '';
         const supabaseAnonKey = '';
         const supabase = (supabaseUrl && supabaseAnonKey && window.supabase) 
@@ -26,13 +25,18 @@
 
         function App() {
           const [activeTab, setActiveTab] = useState('aktiviti')
+          const [subAktivitiTab, setSubAktivitiTab] = useState('Semua') // Pilihan: Semua, Mingguan, Bulanan, Tahunan
+          
           const [dataSurau, setDataSurau] = useState([
-            { id: 1, tarikh: 'Setiap Malam Jumaat', kategori: 'Kuliah Agama', perkara: 'Majlis Bacaan Yassin & Tahlil', status: 'Aktif' },
-            { id: 2, tarikh: 'Setiap Sabtu', kategori: 'Program Mingguan', perkara: 'Kelas Al-Quran Kariah', status: 'Aktif' }
+            { id: 1, tarikh: 'Setiap Malam Jumaat', kategori: 'Mingguan', perkara: 'Majlis Bacaan Yassin & Tahlil', status: 'Aktif' },
+            { id: 2, tarikh: 'Setiap Sabtu', kategori: 'Mingguan', perkara: 'Kelas Al-Quran Kariah', status: 'Aktif' },
+            { id: 3, tarikh: 'Minggu pertama setiap bulan', kategori: 'Bulanan', perkara: 'Mesyuarat AJK Surau & Khairat', status: 'Aktif' },
+            { id: 4, tarikh: '12/2/2026', kategori: 'Tahunan', perkara: 'Program Tahlil Perdana & Ceramah Israk Mikraj', status: 'Aktif' },
+            { id: 5, tarikh: 'Bulan Ramadhan', kategori: 'Tahunan', perkara: 'Program Ihya Ramadhan, Jamuan Bubur Lambuk & Berbuka Puasa', status: 'Aktif' }
           ])
+          
           const [loading, setLoading] = useState(false)
           const [searchTerm, setSearchTerm] = useState('')
-          const [selectedKategori, setSelectedKategori] = useState('Semua')
           
           const [isAdminMode, setIsAdminMode] = useState(false)
           const [isAuthorized, setIsAuthorized] = useState(false)
@@ -42,11 +46,10 @@
           const [editId, setEditId] = useState(null)
           const [formBaru, setFormBaru] = useState({
             tarikh: '',
-            kategori: 'Kuliah Agama',
+            kategori: 'Mingguan',
             perkara: '',
             status: 'Aktif'
           })
-          const [submitting, setSubmitting] = useState(false)
 
           const [waktuSolatInfo, setWaktuSolatInfo] = useState({
             tarikhSemasa: '',
@@ -171,14 +174,14 @@
               alert('Aktiviti baru berjaya ditambah!')
             }
 
-            setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' })
+            setFormBaru({ tarikh: '', kategori: 'Mingguan', perkara: '', status: 'Aktif' })
           }
 
           function mulaEdit(item) {
             setEditId(item.id)
             setFormBaru({
               tarikh: item.tarikh || '',
-              kategori: item.kategori || 'Kuliah Agama',
+              kategori: item.kategori || 'Mingguan',
               perkara: item.perkara || '',
               status: item.status || 'Aktif'
             })
@@ -198,12 +201,10 @@
               item.kategori?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               item.tarikh?.toLowerCase().includes(searchTerm.toLowerCase())
             
-            const matchKategori = selectedKategori === 'Semua' || item.kategori === selectedKategori
+            const matchKategori = subAktivitiTab === 'Semua' || item.kategori === subAktivitiTab
 
             return matchSearch && matchKategori
           })
-
-          const kategoriList = ['Semua', ...new Set(dataSurau.map(item => item.kategori))]
 
           return (
             <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', paddingBottom: '40px' }}>
@@ -260,17 +261,17 @@
                   <div style={{ backgroundColor: editId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                       <h3 style={{ margin: 0, color: editId ? '#383d41' : '#155724', fontSize: '18px' }}>
-                        {editId ? '✏️ Kemaskini Aktiviti' : '🛠️ Tambah Aktiviti / Jadual Baru'}
+                        {editId ? '✏️ Kemaskini Aktiviti' : '🛠️ Tambah Aktiviti Baru'}
                       </h3>
                       <button onClick={() => setIsAuthorized(false)} style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>Log Keluar Admin</button>
                     </div>
 
                     <form onSubmit={handleSimpanAktiviti} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari:</label>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari / Tarikh:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Setiap malam Jumaat"
+                          placeholder="cth: Setiap Malam Jumaat"
                           value={formBaru.tarikh} 
                           onChange={(e) => setFormBaru({ ...formBaru, tarikh: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -278,21 +279,23 @@
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kategori:</label>
-                        <input 
-                          type="text" 
-                          placeholder="cth: Kuliah Agama"
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kategori Program:</label>
+                        <select 
                           value={formBaru.kategori} 
                           onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
-                        />
+                        >
+                          <option value="Mingguan">Mingguan</option>
+                          <option value="Bulanan">Bulanan</option>
+                          <option value="Tahunan">Tahunan</option>
+                        </select>
                       </div>
 
                       <div>
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Perkara / Keterangan:</label>
                         <input 
                           type="text" 
-                          placeholder="cth: Bacaan Yassin"
+                          placeholder="cth: Kuliah Dhuha"
                           value={formBaru.perkara} 
                           onChange={(e) => setFormBaru({ ...formBaru, perkara: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
@@ -314,7 +317,7 @@
 
                       <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
                         {editId && (
-                          <button type="button" onClick={() => { setEditId(null); setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' }) }} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', marginRight: '10px', cursor: 'pointer' }}>Batal</button>
+                          <button type="button" onClick={() => { setEditId(null); setFormBaru({ tarikh: '', kategori: 'Mingguan', perkara: '', status: 'Aktif' }) }} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', marginRight: '10px', cursor: 'pointer' }}>Batal</button>
                         )}
                         <button type="submit" style={{ backgroundColor: editId ? '#ffc107' : '#28a745', color: editId ? '#333' : 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
                           💾 Simpan Rekod
@@ -326,37 +329,53 @@
 
                 {activeTab === 'aktiviti' && (
                   <div>
-                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '25px', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {/* SUB TABS UNTUK PROGRAM */}
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Semua')} 
+                        style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '13px', backgroundColor: subAktivitiTab === 'Semua' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Semua' ? 'white' : '#495057' }}
+                      >
+                        Semua Aktiviti
+                      </button>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Mingguan')} 
+                        style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '13px', backgroundColor: subAktivitiTab === 'Mingguan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Mingguan' ? 'white' : '#495057' }}
+                      >
+                        📅 Program Mingguan
+                      </button>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Bulanan')} 
+                        style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '13px', backgroundColor: subAktivitiTab === 'Bulanan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Bulanan' ? 'white' : '#495057' }}
+                      >
+                        📆 Program Bulanan
+                      </button>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Tahunan')} 
+                        style={{ padding: '8px 16px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '13px', backgroundColor: subAktivitiTab === 'Tahunan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Tahunan' ? 'white' : '#495057' }}
+                      >
+                        🗓️ Program Tahunan
+                      </button>
+                    </div>
+
+                    <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '25px', display: 'flex', justifyContent: 'center' }}>
                       <input 
                         type="text" 
-                        placeholder="Cari perkara, kategori atau hari..." 
+                        placeholder="Cari perkara atau tarikh..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', width: '100%', maxWidth: '350px', fontSize: '14px' }}
+                        style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', width: '100%', maxWidth: '400px', fontSize: '14px' }}
                       />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '300px' }}>
-                        <label style={{ fontSize: '14px', fontWeight: '600', color: '#495057' }}>Kategori:</label>
-                        <select 
-                          value={selectedKategori} 
-                          onChange={(e) => setSelectedKategori(e.target.value)}
-                          style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ced4da', width: '100%', fontSize: '14px', backgroundColor: 'white' }}
-                        >
-                          {kategoriList.map((kat, index) => (
-                            <option key={index} value={kat}>{kat}</option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
 
                     <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                       <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h2 style={{ margin: 0, fontSize: '18px' }}>📋 Senarai Aktiviti & Program Surau</h2>
+                        <h2 style={{ margin: 0, fontSize: '18px' }}>📋 Senarai Aktiviti ({subAktivitiTab})</h2>
                       </div>
                       <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                           <thead>
                             <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
-                              <th style={{ padding: '15px' }}>Jadual / Hari</th>
+                              <th style={{ padding: '15px' }}>Jadual / Hari / Tarikh</th>
                               <th style={{ padding: '15px' }}>Kategori</th>
                               <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
                               <th style={{ padding: '15px' }}>Status</th>
@@ -385,7 +404,7 @@
                               ))
                             ) : (
                               <tr>
-                                <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod aktiviti ditemui.</td>
+                                <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod aktiviti bagi kategori ini.</td>
                               </tr>
                             )}
                           </tbody>
