@@ -24,7 +24,8 @@
             : null;
 
         function App() {
-          const [activeTab, setActiveTab] = useState('mingguan') // Pilihan asal: mingguan, bulanan, tahunan, solat, carta, khairat, sumbangan
+          const [activeTab, setActiveTab] = useState('aktiviti') // Tab utama
+          const [subAktivitiTab, setSubAktivitiTab] = useState('Mingguan') // Sub-tab dalam aktiviti: Mingguan, Bulanan, Tahunan
           
           const [dataSurau, setDataSurau] = useState([
             { id: 1, tarikh: 'Setiap Malam Jumaat', kategori: 'Mingguan', perkara: 'Majlis Bacaan Yassin & Tahlil', status: 'Aktif' },
@@ -194,16 +195,13 @@
             }
           }
 
-          // Tapis data mengikut tab aktif (Mingguan, Bulanan, Tahunan)
+          // Tapis data mengikut sub-tab aktiviti yang dipilih
           const filteredData = dataSurau.filter((item) => {
             const matchSearch = 
               item.perkara?.toLowerCase().includes(searchTerm.toLowerCase()) ||
               item.tarikh?.toLowerCase().includes(searchTerm.toLowerCase())
             
-            let matchKategori = false;
-            if (activeTab === 'mingguan') matchKategori = item.kategori === 'Mingguan';
-            if (activeTab === 'bulanan') matchKategori = item.kategori === 'Bulanan';
-            if (activeTab === 'tahunan') matchKategori = item.kategori === 'Tahunan';
+            const matchKategori = item.kategori === subAktivitiTab;
 
             return matchSearch && matchKategori
           })
@@ -233,13 +231,11 @@
 
               {/* NAV UTAMA */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
-                <button onClick={() => setActiveTab('mingguan')} style={{ backgroundColor: activeTab === 'mingguan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📅 Program Mingguan</button>
-                <button onClick={() => setActiveTab('bulanan')} style={{ backgroundColor: activeTab === 'bulanan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📆 Program Bulanan</button>
-                <button onClick={() => setActiveTab('tahunan')} style={{ backgroundColor: activeTab === 'tahunan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>🗓️ Program Tahunan</button>
-                <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⏳ Waktu Solat</button>
-                <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>👥 Carta AJK</button>
-                <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⚱️ Khairat</button>
-                <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>💰 Sumbangan</button>
+                <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>📋 Program / Aktiviti</button>
+                <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⏳ Waktu Solat</button>
+                <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>👥 Carta AJK</button>
+                <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⚱️ Khairat</button>
+                <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>💰 Sumbangan</button>
               </nav>
 
               {/* MAIN */}
@@ -331,8 +327,30 @@
                   </div>
                 )}
 
-                {(activeTab === 'mingguan' || activeTab === 'bulanan' || activeTab === 'tahunan') && (
+                {activeTab === 'aktiviti' && (
                   <div>
+                    {/* 3 BAHAGIAN SUB-TAB DI DALAM PROGRAM */}
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Mingguan')} 
+                        style={{ padding: '10px 20px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px', backgroundColor: subAktivitiTab === 'Mingguan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Mingguan' ? 'white' : '#495057', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                      >
+                        📅 Program Mingguan
+                      </button>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Bulanan')} 
+                        style={{ padding: '10px 20px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px', backgroundColor: subAktivitiTab === 'Bulanan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Bulanan' ? 'white' : '#495057', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                      >
+                        📆 Program Bulanan
+                      </button>
+                      <button 
+                        onClick={() => setSubAktivitiTab('Tahunan')} 
+                        style={{ padding: '10px 20px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px', backgroundColor: subAktivitiTab === 'Tahunan' ? '#1b4d3e' : '#e9ecef', color: subAktivitiTab === 'Tahunan' ? 'white' : '#495057', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                      >
+                        🗓️ Program Tahunan
+                      </button>
+                    </div>
+
                     <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '25px', display: 'flex', justifyContent: 'center' }}>
                       <input 
                         type="text" 
@@ -346,7 +364,7 @@
                     <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                       <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 style={{ margin: 0, fontSize: '18px' }}>
-                          📋 Senarai Program {activeTab === 'mingguan' ? 'Mingguan' : activeTab === 'bulanan' ? 'Bulanan' : 'Tahunan'}
+                          📋 Senarai Program {subAktivitiTab}
                         </h2>
                       </div>
                       <div style={{ overflowX: 'auto' }}>
