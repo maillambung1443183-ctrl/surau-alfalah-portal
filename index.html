@@ -36,9 +36,9 @@
           ])
 
           const [dataPembangunan, setDataPembangunan] = useState([
-            { id: 1, projek: 'Naik Taraf Sistem Siar Raya (PA System)', kos: 'RM 5,000', status: 'Dalam Perancangan', peratus: '20%' },
-            { id: 2, projek: 'Pemasangan Penghawa Dingin Utama Dewan Solat', kos: 'RM 12,000', status: 'Sedang Berjalan', peratus: '60%' },
-            { id: 3, projek: 'Mengecat Semula Bangunan Surau & Pagar', kos: 'RM 8,000', status: 'Selesai', peratus: '100%' }
+            { id: 1, projek: 'Naik Taraf Sistem Siar Raya (PA System)', status: 'Dalam Perancangan' },
+            { id: 2, projek: 'Pemasangan Penghawa Dingin Utama Dewan Solat', status: 'Sedang Berjalan' },
+            { id: 3, projek: 'Mengecat Semula Bangunan Surau & Pagar', status: 'Selesai' }
           ])
           
           const [loading, setLoading] = useState(false)
@@ -57,12 +57,9 @@
             status: 'Aktif'
           })
 
-          // State borang pembangunan admin
           const [formPembangunan, setFormPembangunan] = useState({
             projek: '',
-            kos: '',
-            status: 'Dalam Perancangan',
-            peratus: '0%'
+            status: 'Dalam Perancangan'
           })
 
           const [waktuSolatInfo, setWaktuSolatInfo] = useState({
@@ -193,15 +190,15 @@
 
           function handleSimpanPembangunan(e) {
             e.preventDefault()
-            if (!formPembangunan.projek || !formPembangunan.kos) {
-              alert('Sila lengkapkan nama projek dan anggaran kos!')
+            if (!formPembangunan.projek) {
+              alert('Sila lengkapkan nama projek atau perkara pembangunan!')
               return
             }
 
             const newProjek = { id: Date.now(), ...formPembangunan }
             setDataPembangunan([newProjek, ...dataPembangunan])
             alert('Projek pembangunan baru berjaya ditambah!')
-            setFormPembangunan({ projek: '', kos: '', status: 'Dalam Perancangan', peratus: '0%' })
+            setFormPembangunan({ projek: '', status: 'Dalam Perancangan' })
           }
 
           function padamPembangunan(id) {
@@ -363,7 +360,7 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN */}
+                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN (RINGKAS) */}
                 {isAdminMode && isAuthorized && activeTab === 'pembangunan' && (
                   <div style={{ backgroundColor: '#d4edda', border: '1px solid #c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -372,24 +369,13 @@
                     </div>
 
                     <form onSubmit={handleSimpanPembangunan} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                      <div>
+                      <div style={{ gridColumn: '1 / span 2' }}>
                         <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Projek / Perkara:</label>
                         <input 
                           type="text" 
                           placeholder="cth: Naik taraf tandas..."
                           value={formPembangunan.projek} 
                           onChange={(e) => setFormPembangunan({ ...formPembangunan, projek: e.target.value })}
-                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Anggaran Kos:</label>
-                        <input 
-                          type="text" 
-                          placeholder="cth: RM 5,000"
-                          value={formPembangunan.kos} 
-                          onChange={(e) => setFormPembangunan({ ...formPembangunan, kos: e.target.value })}
                           style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
                         />
                       </div>
@@ -405,17 +391,6 @@
                           <option value="Sedang Berjalan">Sedang Berjalan</option>
                           <option value="Selesai">Selesai</option>
                         </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kemajuan (%):</label>
-                        <input 
-                          type="text" 
-                          placeholder="cth: 50%"
-                          value={formPembangunan.peratus} 
-                          onChange={(e) => setFormPembangunan({ ...formPembangunan, peratus: e.target.value })}
-                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
-                        />
                       </div>
 
                       <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
@@ -643,9 +618,7 @@
                         <thead>
                           <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
                             <th style={{ padding: '15px' }}>Projek / Perkara</th>
-                            <th style={{ padding: '15px' }}>Anggaran Kos</th>
                             <th style={{ padding: '15px' }}>Status Pelaksanaan</th>
-                            <th style={{ padding: '15px' }}>Kemajuan</th>
                             {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
                           </tr>
                         </thead>
@@ -654,13 +627,11 @@
                             dataPembangunan.map((item) => (
                               <tr key={item.id} style={{ borderBottom: '1px solid #f1f3f5' }}>
                                 <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600' }}>{item.projek}</td>
-                                <td style={{ padding: '15px', fontSize: '14px', fontWeight: '500' }}>{item.kos}</td>
                                 <td style={{ padding: '15px', fontSize: '14px' }}>
                                   <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: item.status === 'Selesai' ? '#d4edda' : item.status === 'Sedang Berjalan' ? '#cce5ff' : '#fff3cd', color: item.status === 'Selesai' ? '#155724' : item.status === 'Sedang Berjalan' ? '#004085' : '#856404' }}>
                                     {item.status}
                                   </span>
                                 </td>
-                                <td style={{ padding: '15px', fontSize: '14px', fontWeight: '600', color: '#2e7d32' }}>{item.peratus}</td>
                                 {isAdminMode && isAuthorized && (
                                   <td style={{ padding: '15px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                                     <button onClick={() => padamPembangunan(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Padam</button>
@@ -670,7 +641,7 @@
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod projek pembangunan.</td>
+                              <td colSpan={isAdminMode && isAuthorized ? "3" : "2"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod projek pembangunan.</td>
                             </tr>
                           )}
                         </tbody>
