@@ -41,7 +41,6 @@
             { id: 3, projek: 'Mengecat Semula Bangunan Surau & Pagar', status: 'Selesai' }
           ])
 
-          // Data Contoh untuk Arkib Gambar Program
           const [dataArkib, setDataArkib] = useState([
             { id: 1, tajuk: 'Program Ihya Ramadhan & Majlis Berbuka Puasa', tarikh: 'Mac 2026', urlGambar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80' },
             { id: 2, tajuk: 'Gotong-Royong Perdana Pembersihan Surau', tarikh: 'Januari 2026', urlGambar: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80' }
@@ -69,7 +68,6 @@
             status: 'Dalam Perancangan'
           })
 
-          // State borang arkib gambar
           const [formArkib, setFormArkib] = useState({
             tajuk: '',
             tarikh: '',
@@ -199,10 +197,22 @@
             setFormPembangunan({ projek: '', status: 'Dalam Perancangan' })
           }
 
+          // Fungsi untuk membaca fail gambar yang dipilih dari komputer/telefon
+          function handleImageChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                setFormArkib({ ...formArkib, urlGambar: reader.result });
+              };
+              reader.readAsDataURL(file);
+            }
+          }
+
           function handleSimpanArkib(e) {
             e.preventDefault()
             if (!formArkib.tajuk || !formArkib.urlGambar) {
-              alert('Sila masukkan Tajuk Program dan Pautan Gambar (URL)!')
+              alert('Sila masukkan Tajuk Program dan Pilih Gambar!')
               return
             }
 
@@ -288,7 +298,7 @@
                 <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
               </header>
 
-              {/* NAV UTAMA - DITUKAR KEPADA TAB ARKIB */}
+              {/* NAV UTAMA */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                 <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📋 Program</button>
                 <button onClick={() => setActiveTab('arkib')} style={{ backgroundColor: activeTab === 'arkib' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📸 Arkib</button>
@@ -388,11 +398,11 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK TAB ARKIB */}
+                {/* BORANG ADMIN UNTUK UPLOAD GAMBAR TERUS */}
                 {isAdminMode && isAuthorized && activeTab === 'arkib' && (
                   <div style={{ backgroundColor: '#d4edda', border: '1px solid #c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                      <h3 style={{ margin: 0, color: '#155724', fontSize: '18px' }}>📸 Muat Naik Gambar / Foto Program</h3>
+                      <h3 style={{ margin: 0, color: '#155724', fontSize: '18px' }}>📸 Upload Gambar Program Terus</h3>
                       <button onClick={() => setIsAuthorized(false)} style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>Log Keluar Admin</button>
                     </div>
 
@@ -420,19 +430,18 @@
                       </div>
 
                       <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Pautan Gambar (URL):</label>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Pilih Fail Gambar:</label>
                         <input 
-                          type="text" 
-                          placeholder="cth: https://example.com/gambar.jpg"
-                          value={formArkib.urlGambar} 
-                          onChange={(e) => setFormArkib({ ...formArkib, urlGambar: e.target.value })}
-                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
                         />
                       </div>
 
                       <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
                         <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-                          💾 Simpan & Muat Naik
+                          💾 Simpan & Masukkan ke Arkib
                         </button>
                       </div>
                     </form>
