@@ -36,9 +36,15 @@
           ])
 
           const [dataPembangunan, setDataPembangunan] = useState([
-            { id: 1, projek: 'Naik Taraf Sistem Siار Raya (PA System)', status: 'Dalam Perancangan' },
+            { id: 1, projek: 'Naik Taraf Sistem Siar Raya (PA System)', status: 'Dalam Perancangan' },
             { id: 2, projek: 'Pemasangan Penghawa Dingin Utama Dewan Solat', status: 'Sedang Berjalan' },
             { id: 3, projek: 'Mengecat Semula Bangunan Surau & Pagar', status: 'Selesai' }
+          ])
+
+          // Data Contoh untuk Arkib Gambar Program
+          const [dataArkib, setDataArkib] = useState([
+            { id: 1, tajuk: 'Program Ihya Ramadhan & Majlis Berbuka Puasa', tarikh: 'Mac 2026', urlGambar: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80' },
+            { id: 2, tajuk: 'Gotong-Royong Perdana Pembersihan Surau', tarikh: 'Januari 2026', urlGambar: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=600&q=80' }
           ])
           
           const [loading, setLoading] = useState(false)
@@ -63,13 +69,11 @@
             status: 'Dalam Perancangan'
           })
 
-          const [waktuSolatInfo, setWaktuSolatInfo] = useState({
-            tarikhSemasa: '',
-            subuh: '05:48',
-            zohor: '13:06',
-            asar: '16:12',
-            maghrib: '19:08',
-            isyak: '20:18'
+          // State borang arkib gambar
+          const [formArkib, setFormArkib] = useState({
+            tajuk: '',
+            tarikh: '',
+            urlGambar: ''
           })
 
           const pengerusi = { jawatan: "Pengerusi", nama: "En. Awang Mohd Fauzi Bin Abu Samah" }
@@ -124,24 +128,10 @@
           ]
 
           useEffect(() => {
-            paparTarikhSemasa()
             if (supabase) {
               fetchSurauData()
             }
           }, [])
-
-          function paparTarikhSemasa() {
-            const today = new Date()
-            const hari = today.getDate()
-            const bulan = today.toLocaleString('ms-MY', { month: 'long', year: 'numeric' })
-            const hariNama = today.toLocaleString('ms-MY', { weekday: 'long' })
-            const tarikhPenuh = `${hariNama}, ${hari} ${bulan}`
-
-            setWaktuSolatInfo(prev => ({
-              ...prev,
-              tarikhSemasa: tarikhPenuh
-            }))
-          }
 
           async function fetchSurauData() {
             if (!supabase) return;
@@ -192,7 +182,7 @@
           async function handleSimpanPembangunan(e) {
             e.preventDefault()
             if (!formPembangunan.projek) {
-              alert('Sila lengkapkan nama projek atau perkara pembangunan!')
+              alert('Sila lengkapkan nama projek pembangunan!')
               return
             }
 
@@ -207,6 +197,26 @@
             }
 
             setFormPembangunan({ projek: '', status: 'Dalam Perancangan' })
+          }
+
+          function handleSimpanArkib(e) {
+            e.preventDefault()
+            if (!formArkib.tajuk || !formArkib.urlGambar) {
+              alert('Sila masukkan Tajuk Program dan Pautan Gambar (URL)!')
+              return
+            }
+
+            const gambarBaru = { id: Date.now(), ...formArkib }
+            setDataArkib([gambarBaru, ...dataArkib])
+            alert('Gambar arkib berjaya dimuat naik!')
+            setFormArkib({ tajuk: '', tarikh: '', urlGambar: '' })
+          }
+
+          function padamArkib(id) {
+            if (window.confirm('Adakah anda pasti mahu memadam gambar arkib ini?')) {
+              setDataArkib(dataArkib.filter(item => item.id !== id))
+              alert('Gambar telah dipadam.')
+            }
           }
 
           function mulaEditPembangunan(item) {
@@ -278,10 +288,10 @@
                 <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
               </header>
 
-              {/* NAV UTAMA */}
+              {/* NAV UTAMA - DITUKAR KEPADA TAB ARKIB */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                 <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📋 Program</button>
-                <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⏳ Waktu Solat</button>
+                <button onClick={() => setActiveTab('arkib')} style={{ backgroundColor: activeTab === 'arkib' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📸 Arkib</button>
                 <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>👥 Carta AJK</button>
                 <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>⚱️ Khairat</button>
                 <button onClick={() => setActiveTab('pembangunan')} style={{ backgroundColor: activeTab === 'pembangunan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>🏗️ Pembangunan</button>
@@ -378,7 +388,58 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN (BOLEH EDIT & TAMBAH) */}
+                {/* BORANG ADMIN UNTUK TAB ARKIB */}
+                {isAdminMode && isAuthorized && activeTab === 'arkib' && (
+                  <div style={{ backgroundColor: '#d4edda', border: '1px solid #c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <h3 style={{ margin: 0, color: '#155724', fontSize: '18px' }}>📸 Muat Naik Gambar / Foto Program</h3>
+                      <button onClick={() => setIsAuthorized(false)} style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>Log Keluar Admin</button>
+                    </div>
+
+                    <form onSubmit={handleSimpanArkib} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Tajuk Program / Aktiviti:</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: Majlis Maulidur Rasul"
+                          value={formArkib.tajuk} 
+                          onChange={(e) => setFormArkib({ ...formArkib, tajuk: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Tarikh / Bulan:</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: Mac 2026"
+                          value={formArkib.tarikh} 
+                          onChange={(e) => setFormArkib({ ...formArkib, tarikh: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Pautan Gambar (URL):</label>
+                        <input 
+                          type="text" 
+                          placeholder="cth: https://example.com/gambar.jpg"
+                          value={formArkib.urlGambar} 
+                          onChange={(e) => setFormArkib({ ...formArkib, urlGambar: e.target.value })}
+                          style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                        />
+                      </div>
+
+                      <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
+                        <button type="submit" style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                          💾 Simpan & Muat Naik
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN */}
                 {isAdminMode && isAuthorized && activeTab === 'pembangunan' && (
                   <div style={{ backgroundColor: editPembangunanId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editPembangunanId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -507,16 +568,29 @@
                   </div>
                 )}
 
-                {activeTab === 'solat' && (
-                  <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                    <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e' }}>Jadual Waktu Solat Harian Zon Melaka / Jasin (MLK01)</h2>
-                    <p style={{ color: '#2e7d32', fontSize: '14px', fontWeight: '600', marginBottom: '25px' }}>📅 Tarikh Hari Ini: {waktuSolatInfo.tarikhSemasa}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '15px' }}>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Subuh</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.subuh}</p></div>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Zohor</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.zohor}</p></div>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Asar</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.asar}</p></div>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Maghrib</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.maghrib}</p></div>
-                      <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Isyak</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.isyak}</p></div>
+                {/* PAPARAN TAB ARKIB GAMBAR */}
+                {activeTab === 'arkib' && (
+                  <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e', textAlign: 'center' }}>📸 Arkib & Galeri Gambar Program</h2>
+                    <p style={{ margin: '0 0 30px 0', fontSize: '13px', color: '#6c757d', textAlign: 'center' }}>Koleksi foto aktiviti dan program Surau Al Falah Taman Seri Chinchin</p>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                      {dataArkib.length > 0 ? (
+                        dataArkib.map((item) => (
+                          <div key={item.id} style={{ border: '1px solid #dee2e6', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f8f9fa', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                            <img src={item.urlGambar} alt={item.tajuk} style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+                            <div style={{ padding: '15px' }}>
+                              <h4 style={{ margin: '0 0 5px 0', fontSize: '15px', color: '#1b4d3e' }}>{item.tajuk}</h4>
+                              <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#6c757d' }}>📅 {item.tarikh}</p>
+                              {isAdminMode && isAuthorized && (
+                                <button onClick={() => padamArkib(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', width: '100%' }}>Padam Gambar</button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#6c757d', padding: '30px' }}>Tiada gambar dalam arkib buat masa ini.</p>
+                      )}
                     </div>
                   </div>
                 )}
