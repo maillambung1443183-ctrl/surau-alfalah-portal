@@ -1,1 +1,554 @@
+import React, { useEffect, useState } from 'react'
+import { supabase } from './supabaseClient'
 
+function App() {
+  const [activeTab, setActiveTab] = useState('aktiviti')
+  const [dataSurau, setDataSurau] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedKategori, setSelectedKategori] = useState('Semua')
+  
+  const [isAdminMode, setIsAdminMode] = useState(false)
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
+  const ADMIN_PASSWORD = 'surau1234'
+
+  const [editId, setEditId] = useState(null)
+  const [formBaru, setFormBaru] = useState({
+    tarikh: '',
+    kategori: 'Kuliah Agama',
+    perkara: '',
+    status: 'Aktif'
+  })
+  const [submitting, setSubmitting] = useState(false)
+
+  const [waktuSolatInfo, setWaktuSolatInfo] = useState({
+    tarikhSemasa: '',
+    imsak: '05:38',
+    subuh: '05:48',
+    syuruk: '07:01',
+    zohor: '13:06',
+    asar: '16:12',
+    maghrib: '19:08',
+    isyak: '20:18'
+  })
+
+  const pengerusi = { jawatan: "Pengerusi", nama: "En. Awang Mohd Fauzi Bin Abu Samah" }
+  const timbalanPengerusi = { jawatan: "Timbalan Pengerusi", nama: "En. Kamarul Bahrain Bin Salleh" }
+  
+  const barisanUrusetia = [
+    { jawatan: "Setiausaha", nama: "En. Mansor Bin Mohamed" },
+    { jawatan: "Penolong Setiausaha", nama: "En. Ismail Bin Ishak" },
+    { jawatan: "Bendahari", nama: "En. Md Amin Bin Johan" }
+  ]
+
+  const senaraiAjk = [
+    { nama: "En. Amiruddin Bin Othman" },
+    { nama: "En. Abd Rashid Bin Tahir" },
+    { nama: "En. Hj. Nazri Bin Abu Bakar" },
+    { nama: "En. Hj. Yani Bin Selamat" },
+    { nama: "En. Abd Jalil Bin Mansor" },
+    { nama: "Pn. Rosnah Binti Salleh" },
+    { nama: "En. Kamarulzaman Bin Hussin" },
+    { nama: "Pn. Saamah Binti Shahar" },
+    { nama: "Pn. Rosni Binti Mokhtar" },
+    { nama: "En. Zahidi Bin Zakaria" }
+  ]
+
+  const pemeriksaKiraKira = [
+    { nama: "En. Abd Jalil Bin Hassan" },
+    { nama: "En. Mohd Asrul Effandy Bin Umar" }
+  ]
+
+  const pengerusiKhairat = { jawatan: "Pengerusi", nama: "En. Awang Mohd Fauzi Bin Abu Samah" }
+  const naibPengerusiKhairat = { jawatan: "Naib Pengerusi", nama: "En. Fadzil Bin Sulaiman" }
+  
+  const urusetiaKhairat = [
+    { jawatan: "Setiausaha", nama: "En. Ismail Bin Ishak" },
+    { jawatan: "Bendahari", nama: "En. Mohd Zan Bin Mohd Nor" }
+  ]
+
+  const ajkKhairat = [
+    { nama: "En. Amiruddin Bin Othman" },
+    { nama: "En. Hj. Nazri Bin Abu Bakar" },
+    { nama: "Pn. Suraya Binti Unan" },
+    { nama: "Pn. Rosni Binti Mokhtar" },
+    { nama: "En. Norman Bin Zainal" }
+  ]
+
+  const penasihatKhairat = [
+    { nama: "En. Baharudin Bin Budin" },
+    { nama: "En. Ismail Bin Jaamat" },
+    { nama: "En. Karim Bin Ramalan" },
+    { nama: "En. Abu Bakar Bin Wahab" },
+    { nama: "En. Mustafa Bin Baharum" }
+  ]
+
+  useEffect(() => {
+    fetchSurauData()
+    paparTarikhSemasa()
+  }, [])
+
+  function paparTarikhSemasa() {
+    const today = new Date()
+    const hari = today.getDate()
+    const bulan = today.toLocaleString('ms-MY', { month: 'long', year: 'numeric' })
+    const hariNama = today.toLocaleString('ms-MY', { weekday: 'long' })
+    const tarikhPenuh = `${hariNama}, ${hari} ${bulan}`
+
+    setWaktuSolatInfo(prev => ({
+      ...prev,
+      tarikhSemasa: tarikhPenuh
+    }))
+  }
+
+  async function fetchSurauData() {
+    try {
+      setLoading(true)
+      const { data, error } = await supabase
+        .from('surau_management')
+        .select('*')
+
+      if (error) {
+        console.error('Ralat mengambil data aktiviti:', error.message)
+      } else {
+        setDataSurau(data || [])
+      }
+    } catch (error) {
+      console.error('Ralat sistem:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleLoginAdmin(e) {
+    e.preventDefault()
+    if (passwordInput === ADMIN_PASSWORD) {
+      setIsAuthorized(true)
+      setPasswordInput('')
+    } else {
+      alert('Kata laluan salah!')
+      setPasswordInput('')
+    }
+  }
+
+  async function handleSimpanAktiviti(e) {
+    e.preventDefault()
+    if (!formBaru.tarikh || !formBaru.perkara) {
+      alert('Sila lengkapkan ruangan Tarikh/Jadual dan Perkara!')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      if (editId) {
+        const { error } = await supabase
+          .from('surau_management')
+          .update(formBaru)
+          .eq('id', editId)
+
+        if (error) {
+          alert('Ralat kemaskini: ' + error.message)
+        } else {
+          alert('Rekod aktiviti berjaya dikemaskini!')
+          setEditId(null)
+        }
+      } else {
+        const { error } = await supabase
+          .from('surau_management')
+          .insert([formBaru])
+
+        if (error) {
+          alert('Ralat menyimpan: ' + error.message)
+        } else {
+          alert('Aktiviti baru berjaya ditambah!')
+        }
+      }
+
+      setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' })
+      fetchSurauData()
+    } catch (err) {
+      console.error('Ralat:', err)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  function mulaEdit(item) {
+    setEditId(item.id)
+    setFormBaru({
+      tarikh: item.tarikh || '',
+      kategori: item.kategori || 'Kuliah Agama',
+      perkara: item.perkara || '',
+      status: item.status || 'Aktif'
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function padamAktiviti(id) {
+    if (window.confirm('Adakah anda pasti mahu memadam rekod aktiviti ini?')) {
+      const { error } = await supabase
+        .from('surau_management')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        alert('Ralat memadam: ' + error.message)
+      } else {
+        alert('Rekod telah dipadam.')
+        fetchSurauData()
+      }
+    }
+  }
+
+  const filteredData = dataSurau.filter((item) => {
+    const matchSearch = 
+      item.perkara?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.kategori?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tarikh?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchKategori = selectedKategori === 'Semua' || item.kategori === selectedKategori
+
+    return matchSearch && matchKategori
+  })
+
+  const kategoriList = ['Semua', ...new Set(dataSurau.map(item => item.kategori))]
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', paddingBottom: '40px' }}>
+      
+      {/* HEADER */}
+      <header style={{ backgroundColor: '#1b4d3e', color: 'white', padding: '30px 20px', textAlign: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', position: 'relative' }}>
+        <button 
+          onClick={() => {
+            setIsAdminMode(!isAdminMode)
+            if (isAdminMode) {
+              setIsAuthorized(false)
+              setEditId(null)
+            }
+          }}
+          style={{ position: 'absolute', top: '15px', right: '20px', background: isAdminMode ? '#c82333' : '#ffc107', color: isAdminMode ? 'white' : '#333', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+        >
+          {isAdminMode ? 'Tutup Panel Admin' : '⚙️ Mod Admin'}
+        </button>
+
+        <h1 style={{ margin: '0 0 10px 0', fontSize: '26px' }}>🕌 Portal Rasmi Surau Al Falah</h1>
+        <p style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: '600', color: '#ffc107' }}>Taman Seri Chinchin, Jasin, Melaka</p>
+        <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
+      </header>
+
+      {/* NAV */}
+      <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '8px', padding: '10px 20px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
+        <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>📋 Aktiviti</button>
+        <button onClick={() => setActiveTab('solat')} style={{ backgroundColor: activeTab === 'solat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⏳ Waktu Solat</button>
+        <button onClick={() => setActiveTab('carta')} style={{ backgroundColor: activeTab === 'carta' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>👥 Carta AJK</button>
+        <button onClick={() => setActiveTab('khairat')} style={{ backgroundColor: activeTab === 'khairat' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>⚱️ Khairat Kematian</button>
+        <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>💰 Sumbangan</button>
+      </nav>
+
+      {/* MAIN */}
+      <main style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 20px' }}>
+        
+        {isAdminMode && !isAuthorized && (
+          <div style={{ backgroundColor: '#fff3cd', border: '1px solid #ffeeba', padding: '25px', borderRadius: '8px', marginBottom: '25px', textAlign: 'center' }}>
+            <h3 style={{ margin: '0 0 10px 0', color: '#856404', fontSize: '18px' }}>🔐 Log Masuk Panel Admin</h3>
+            <form onSubmit={handleLoginAdmin} style={{ display: 'flex', justifyContent: 'center', gap: '10px', maxWidth: '350px', margin: '0 auto' }}>
+              <input 
+                type="password" 
+                placeholder="Kata laluan..." 
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #ced4da', flex: 1, fontSize: '14px' }}
+              />
+              <button type="submit" style={{ backgroundColor: '#1b4d3e', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Masuk</button>
+            </form>
+          </div>
+        )}
+
+        {isAdminMode && isAuthorized && (
+          <div style={{ backgroundColor: editId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3 style={{ margin: 0, color: editId ? '#383d41' : '#155724', fontSize: '18px' }}>
+                {editId ? '✏️ Kemaskini Aktiviti' : '🛠️ Tambah Aktiviti / Jadual Baru'}
+              </h3>
+              <button onClick={() => setIsAuthorized(false)} style={{ background: 'none', border: 'none', color: '#721c24', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}>Log Keluar Admin</button>
+            </div>
+
+            <form onSubmit={handleSimpanAktiviti} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Jadual / Hari (cth: Setiap Isnin):</label>
+                <input 
+                  type="text" 
+                  placeholder="cth: Setiap malam Jumaat"
+                  value={formBaru.tarikh} 
+                  onChange={(e) => setFormBaru({ ...formBaru, tarikh: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Kategori:</label>
+                <input 
+                  type="text" 
+                  placeholder="cth: Program Bacaan Yassin"
+                  value={formBaru.kategori} 
+                  onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Perkara / Keterangan:</label>
+                <input 
+                  type="text" 
+                  placeholder="cth: Bacaan yassin dan tahlil"
+                  value={formBaru.perkara} 
+                  onChange={(e) => setFormBaru({ ...formBaru, perkara: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '5px' }}>Status:</label>
+                <select 
+                  value={formBaru.status} 
+                  onChange={(e) => setFormBaru({ ...formBaru, status: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', backgroundColor: 'white' }}
+                >
+                  <option value="Aktif">Aktif</option>
+                  <option value="Dalam Proses">Dalam Proses</option>
+                  <option value="Selesai">Selesai</option>
+                </select>
+              </div>
+
+              <div style={{ gridColumn: '1 / -1', textAlign: 'right' }}>
+                {editId && (
+                  <button type="button" onClick={() => { setEditId(null); setFormBaru({ tarikh: '', kategori: 'Kuliah Agama', perkara: '', status: 'Aktif' }) }} style={{ background: '#6c757d', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '5px', marginRight: '10px', cursor: 'pointer' }}>Batal</button>
+                )}
+                <button type="submit" disabled={submitting} style={{ backgroundColor: editId ? '#ffc107' : '#28a745', color: editId ? '#333' : 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  {submitting ? 'Menyimpan...' : '💾 Simpan ke Supabase'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {activeTab === 'aktiviti' && (
+          <div>
+            <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginBottom: '25px', display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center' }}>
+              <input 
+                type="text" 
+                placeholder="Cari perkara, kategori atau hari..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', width: '100%', maxWidth: '350px', fontSize: '14px' }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '300px' }}>
+                <label style={{ fontSize: '14px', fontWeight: '600', color: '#495057' }}>Kategori:</label>
+                <select 
+                  value={selectedKategori} 
+                  onChange={(e) => setSelectedKategori(e.target.value)}
+                  style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ced4da', width: '100%', fontSize: '14px', backgroundColor: 'white' }}
+                >
+                  {kategoriList.map((kat, index) => (
+                    <option key={index} value={kat}>{kat}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {loading ? (
+              <div style={{ backgroundColor: 'white', padding: '40px', textAlign: 'center', color: '#6c757d', borderRadius: '8px' }}>Sedang memuat data...</div>
+            ) : (
+              <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                <div style={{ padding: '18px 20px', backgroundColor: '#1b4d3e', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ margin: 0, fontSize: '18px' }}>📋 Senarai Aktiviti & Program Surau</h2>
+                  <button onClick={fetchSurauData} style={{ backgroundColor: '#ffc107', color: '#333', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Muat Semula</button>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f1f3f5', color: '#495057', fontSize: '13px', textTransform: 'uppercase' }}>
+                        <th style={{ padding: '15px' }}>Jadual / Hari</th>
+                        <th style={{ padding: '15px' }}>Kategori</th>
+                        <th style={{ padding: '15px' }}>Perkara / Keterangan</th>
+                        <th style={{ padding: '15px' }}>Status</th>
+                        {isAdminMode && isAuthorized && <th style={{ padding: '15px', textAlign: 'center' }}>Tindakan</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredData.length > 0 ? (
+                        filteredData.map((item, index) => (
+                          <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f3f5' }}>
+                            <td style={{ padding: '15px', fontSize: '14px', color: '#1b4d3e', fontWeight: '600', whiteSpace: 'nowrap' }}>{item.tarikh}</td>
+                            <td style={{ padding: '15px', fontSize: '14px' }}>
+                              <span style={{ backgroundColor: '#e9ecef', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: '600', color: '#495057' }}>{item.kategori}</span>
+                            </td>
+                            <td style={{ padding: '15px', fontSize: '14px', color: '#212529', fontWeight: '500' }}>{item.perkara}</td>
+                            <td style={{ padding: '15px', fontSize: '14px' }}>
+                              <span style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#d4edda', color: '#155724' }}>{item.status || 'Aktif'}</span>
+                            </td>
+                            {isAdminMode && isAuthorized && (
+                              <td style={{ padding: '15px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                                <button onClick={() => mulaEdit(item)} style={{ backgroundColor: '#ffc107', color: '#333', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', marginRight: '5px' }}>Edit</button>
+                                <button onClick={() => padamAktiviti(item.id)} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Padam</button>
+                              </td>
+                            )}
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={isAdminMode && isAuthorized ? "5" : "4"} style={{ padding: '30px', textAlign: 'center', color: '#6c757d', fontSize: '14px' }}>Tiada rekod aktiviti ditemui.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'solat' && (
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e' }}>Jadual Waktu Solat Harian Zon Melaka / Jasin (MLK01)</h2>
+            <p style={{ color: '#2e7d32', fontSize: '14px', fontWeight: '600', marginBottom: '25px' }}>📅 Tarikh Hari Ini: {waktuSolatInfo.tarikhSemasa}</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '15px' }}>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Subuh</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.subuh}</p></div>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Zohor</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.zohor}</p></div>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Asar</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.asar}</p></div>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Maghrib</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.maghrib}</p></div>
+              <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}><h4 style={{ margin: '0 0 5px 0', fontSize: '14px' }}>Isyak</h4><p style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>{waktuSolatInfo.isyak}</p></div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'carta' && (
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e', textAlign: 'center' }}>Carta Organisasi Jawatankuasa Surau Al Falah</h2>
+            <p style={{ margin: '0 0 30px 0', fontSize: '13px', color: '#6c757d', textAlign: 'center' }}>Taman Seri Chinchin, Jasin, Melaka</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <div style={{ backgroundColor: '#1b4d3e', color: 'white', padding: '15px 25px', borderRadius: '8px', minWidth: '280px', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffc107', textTransform: 'uppercase', marginBottom: '4px' }}>{pengerusi.jawatan}</div>
+                <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{pengerusi.nama}</div>
+              </div>
+
+              <div style={{ backgroundColor: '#2e7d32', color: 'white', padding: '15px 25px', borderRadius: '8px', minWidth: '280px', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffc107', textTransform: 'uppercase', marginBottom: '4px' }}>{timbalanPengerusi.jawatan}</div>
+                <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{timbalanPengerusi.nama}</div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '600px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Barisan Urusetia</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '15px' }}>
+                  {barisanUrusetia.map((org, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px', border: '1px solid #ced4da', textAlign: 'center' }}>
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#2e7d32', textTransform: 'uppercase', marginBottom: '3px' }}>{org.jawatan}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#333' }}>{org.nama}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '800px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Ahli Jawatankuasa (AJK)</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                  {senaraiAjk.map((ajk, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', fontSize: '13px', fontWeight: '500', color: '#333', textAlign: 'center' }}>
+                      {ajk.nama}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '600px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Pemeriksa Kira-Kira</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                  {pemeriksaKiraKira.map((pkk, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', fontSize: '13px', fontWeight: '500', color: '#333', textAlign: 'center' }}>
+                      {pkk.nama}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'khairat' && (
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e', textAlign: 'center' }}>Biro Khairat Kematian</h2>
+            <p style={{ margin: '0 0 30px 0', fontSize: '13px', color: '#6c757d', textAlign: 'center' }}>Surau Al Falah Taman Seri Chinchin, Jasin, Melaka</p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <div style={{ backgroundColor: '#1b4d3e', color: 'white', padding: '15px 25px', borderRadius: '8px', minWidth: '280px', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffc107', textTransform: 'uppercase', marginBottom: '4px' }}>{pengerusiKhairat.jawatan}</div>
+                <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{pengerusiKhairat.nama}</div>
+              </div>
+
+              <div style={{ backgroundColor: '#2e7d32', color: 'white', padding: '15px 25px', borderRadius: '8px', minWidth: '280px', textAlign: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#ffc107', textTransform: 'uppercase', marginBottom: '4px' }}>{naibPengerusiKhairat.jawatan}</div>
+                <div style={{ fontSize: '15px', fontWeight: 'bold' }}>{naibPengerusiKhairat.nama}</div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '600px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Urusetia Khairat</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
+                  {urusetiaKhairat.map((org, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px', border: '1px solid #ced4da', textAlign: 'center' }}>
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#2e7d32', textTransform: 'uppercase', marginBottom: '3px' }}>{org.jawatan}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#333' }}>{org.nama}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '800px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Ahli Jawatankuasa (AJK) Khairat</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                  {ajkKhairat.map((ajk, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', fontSize: '13px', fontWeight: '500', color: '#333', textAlign: 'center' }}>
+                      {ajk.nama}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ width: '100%', maxWidth: '800px', backgroundColor: '#f8f9fa', padding: '20px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#1b4d3e', textAlign: 'center', borderBottom: '2px solid #1b4d3e', paddingBottom: '8px' }}>Penasihat Khairat</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                  {penasihatKhairat.map((pen, index) => (
+                    <div key={index} style={{ backgroundColor: 'white', padding: '10px 15px', borderRadius: '6px', border: '1px solid #ced4da', fontSize: '13px', fontWeight: '500', color: '#333', textAlign: 'center' }}>
+                      {pen.nama}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'sumbangan' && (
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            <h2 style={{ margin: '0 0 10px 0', fontSize: '20px', color: '#1b4d3e' }}>Sumbangan & Derma Infaq Surau</h2>
+            <div style={{ maxWidth: '400px', margin: '0 auto', background: '#f8f9fa', padding: '25px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#333' }}>Bank Simpanan Nasional (BSN)</h3>
+              <p style={{ margin: '5px 0', fontSize: '18px', fontWeight: 'bold', color: '#1b4d3e' }}>0410041000169514</p>
+              <p style={{ margin: '0', fontSize: '13px', color: '#6c757d' }}>Tetuan Tabung Surau Al Falah Taman Seri Chinchin</p>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      <footer style={{ textAlign: 'center', marginTop: '50px', color: '#6c757d', fontSize: '13px' }}>
+        <p>&copy; 2026 Surau Al Falah Taman Seri Chinchin, Jasin, Melaka. Hak Cipta Terpelihara.</p>
+      </footer>
+    </div>
+  )
+}
+
+export default App
