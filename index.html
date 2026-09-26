@@ -197,7 +197,6 @@
             setFormPembangunan({ projek: '', status: 'Dalam Perancangan' })
           }
 
-          // Fungsi untuk membaca fail gambar yang dipilih dari komputer/telefon
           function handleImageChange(e) {
             const file = e.target.files[0];
             if (file) {
@@ -277,7 +276,6 @@
           return (
             <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', paddingBottom: '40px' }}>
               
-              {/* HEADER */}
               <header style={{ backgroundColor: '#1b4d3e', color: 'white', padding: '30px 20px', textAlign: 'center', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', position: 'relative' }}>
                 <button 
                   onClick={() => {
@@ -298,7 +296,6 @@
                 <p style={{ margin: 0, fontSize: '14px', color: '#d1e7dd' }}>Sistem Pengurusan Aktiviti, Pentadbiran & Maklumat Kariah</p>
               </header>
 
-              {/* NAV UTAMA */}
               <nav style={{ backgroundColor: '#14382c', display: 'flex', justifyContent: 'center', gap: '6px', padding: '10px 15px', boxShadow: 'inset 0 -2px 5px rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
                 <button onClick={() => setActiveTab('aktiviti')} style={{ backgroundColor: activeTab === 'aktiviti' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📋 Program</button>
                 <button onClick={() => setActiveTab('arkib')} style={{ backgroundColor: activeTab === 'arkib' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>📸 Arkib</button>
@@ -308,7 +305,6 @@
                 <button onClick={() => setActiveTab('sumbangan')} style={{ backgroundColor: activeTab === 'sumbangan' ? '#2e7d32' : 'transparent', color: 'white', border: 'none', padding: '10px 14px', borderRadius: '5px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>💰 Sumbangan</button>
               </nav>
 
-              {/* MAIN */}
               <main style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 20px' }}>
                 
                 {isAdminMode && !isAuthorized && (
@@ -327,7 +323,6 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK TAB AKTIVITI */}
                 {isAdminMode && isAuthorized && activeTab === 'aktiviti' && (
                   <div style={{ backgroundColor: editId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -398,7 +393,7 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK UPLOAD GAMBAR TERUS */}
+                {/* BORANG ADMIN PILIH FAIL GAMBAR TERUS */}
                 {isAdminMode && isAuthorized && activeTab === 'arkib' && (
                   <div style={{ backgroundColor: '#d4edda', border: '1px solid #c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -448,7 +443,6 @@
                   </div>
                 )}
 
-                {/* BORANG ADMIN UNTUK TAB PEMBANGUNAN */}
                 {isAdminMode && isAuthorized && activeTab === 'pembangunan' && (
                   <div style={{ backgroundColor: editPembangunanId ? '#e2e3e5' : '#d4edda', border: '1px solid', borderColor: editPembangunanId ? '#d6d8db' : '#c3e6cb', padding: '20px', borderRadius: '8px', marginBottom: '25px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
@@ -577,7 +571,6 @@
                   </div>
                 )}
 
-                {/* PAPARAN TAB ARKIB GAMBAR */}
                 {activeTab === 'arkib' && (
                   <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                     <h2 style={{ margin: '0 0 5px 0', fontSize: '20px', color: '#1b4d3e', textAlign: 'center' }}>📸 Arkib & Galeri Gambar Program</h2>
